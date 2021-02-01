@@ -165,12 +165,9 @@ def open_data(length, path="./data/", single_color=False):
 
     for i in range(length):
         img = cv2.imread(path + "{}.png".format(i))
-        cv2.imshow("LOAD", img)
-        cv2.waitKey()
         conv = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        cv2.waitKey()
         if single_color:
-            img = extract_yellow(img)
+            img = extract_yellow(conv)
 
 
         # cv2.imwrite("LMAO.png", mask)
@@ -387,7 +384,7 @@ if __name__ == '__main__':
     # order_files_by_number("./data/")
     # train_model(single_color=True)
 
-    # test_model("./MODEL.973.COLOR.h5")
+    # test_model("./MODEL.1LARGE1.h5", single_color=True)
 
     # predict_model(path="./MODEL.973.COLOR.h5")
     # x, y = open_data(15)
@@ -397,4 +394,4 @@ if __name__ == '__main__':
 
     # real_time_detection("./MODEL.987.COLOR.h5")
     # real_time_detection("./MODEL.1.h5", single_color=True)
-    real_time_detection("./MODEL.1LARGE.h5", single_color=True)
+    real_time_detection("./MODEL.1LARGE1.h5", single_color=True)
