@@ -4,9 +4,11 @@ import wave
 import pyaudio
 
 
-class RecordingModule:
+class RecordingObject:
 
-    def __init__(self, chunk=1024, channels=2, fs=44100):
+    def __init__(self, path="./", chunk=1024, channels=2, fs=44100):
+        self.filename = None
+        self.path = path
         self.data = []
         self.chunk = chunk
         self.channels = channels
@@ -18,6 +20,8 @@ class RecordingModule:
         self.pyaudio = None
 
     def record_sample(self):
+        self.middle_man.set_condition(True)
+
         self.pyaudio = pyaudio.PyAudio()  # Create an interface to PortAudio
 
         index = 0
@@ -47,7 +51,8 @@ class RecordingModule:
         #
         # # Save the recorded data as a WAV file
 
-    def stop_recording(self):
+    def stop_recording(self, file):
+        self.filename = file
         self.middle_man.set_condition(False)
 
     def __recording_thread(self):
@@ -61,15 +66,17 @@ class RecordingModule:
         self.stream.close()
         # Terminate the PortAudio interface
         self.pyaudio.terminate()
-        print("Shut down")
+        print("Shut down pyaudio")
 
-        filename = "test.wav"
+
+        filename = self.path + self.filename
         wf = wave.open(filename, 'wb')
         wf.setnchannels(self.channels)
         wf.setsampwidth(self.pyaudio.get_sample_size(self.sample_format))
         wf.setframerate(self.fs)
         wf.writeframes(b''.join(self.data))
         wf.close()
+        print("WRITTEN")
 
 
 class MiddleMan:
@@ -86,14 +93,13 @@ class MiddleMan:
     def set_condition(self, value):
         self.lock.acquire()
         self.message = value
-        print("ATTEMPTED STOP")
         self.lock.release()
 
 
 if __name__ == '__main__':
     inp = ""
 
-    rec = RecordingModule()
+    rec = RecordingObject()
     rec.record_sample()
     while inp != "x":
         print("Enter 'x' to stop recording: ")
