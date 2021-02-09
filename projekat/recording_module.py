@@ -16,19 +16,23 @@ class RecordingModule:
         self.middle_man = MiddleMan(True)
         self.stream = None
         self.pyaudio = None
+        self.path = "test.wav"
 
     def record_sample(self):
         self.pyaudio = pyaudio.PyAudio()  # Create an interface to PortAudio
 
         index = 0
-        for i in range(30):
-            info = self.pyaudio.get_device_info_by_index(i)
+        for i in range(self.pyaudio.get_device_count()):
+            try:
+                info = self.pyaudio.get_device_info_by_index(i)
+            except:
+                continue
             print(info)
-            if "stereo" in info["name"].lower():
+            if 'Stereo Mix' in info['name']:
                 index = i
                 print("Recording device index is {}".format(index))
                 self.channels = info["maxInputChannels"]
-                break
+                continue
         print('Recording')
 
         self.stream = self.pyaudio.open(format=self.sample_format,
@@ -50,6 +54,9 @@ class RecordingModule:
     def stop_recording(self):
         self.middle_man.set_condition(False)
 
+    def save_path(self, path):
+        self.path = path
+
     def __recording_thread(self):
         while self.middle_man.check_condition():
             data = self.stream.read(self.chunk)
@@ -63,8 +70,8 @@ class RecordingModule:
         self.pyaudio.terminate()
         print("Shut down")
 
-        filename = "test.wav"
-        wf = wave.open(filename, 'wb')
+        #filename = "test.wav"
+        wf = wave.open("sample/" + self.path, 'wb')
         wf.setnchannels(self.channels)
         wf.setsampwidth(self.pyaudio.get_sample_size(self.sample_format))
         wf.setframerate(self.fs)

@@ -2,6 +2,7 @@ import math
 import os
 import threading
 from time import sleep, time
+from projekat.recording_module import RecordingModule
 
 import cv2
 import d3dshot as d3dshot
@@ -10,14 +11,15 @@ import numpy as np
 import pyscreenshot as ImageGrab
 from PIL import Image
 from tensorflow import keras
-from tensorflow.keras.layers import Conv2D, LeakyReLU, Flatten, Dense, MaxPool2D
-from tensorflow.keras.losses import binary_crossentropy, categorical_crossentropy, mean_absolute_error, \
+from keras.layers import Conv2D, LeakyReLU, Flatten, Dense, MaxPool2D
+from keras.losses import binary_crossentropy, categorical_crossentropy, mean_absolute_error, \
     mean_squared_error
-from tensorflow.keras.metrics import Accuracy, BinaryAccuracy, MeanSquaredError, MeanAbsoluteError
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.optimizers import Adam, SGD
-from tensorflow_core.python.keras.utils import Sequence
+from keras.metrics import Accuracy, BinaryAccuracy, MeanSquaredError, MeanAbsoluteError
+from keras.models import Sequential
+from keras.optimizers import Adam, SGD
+from keras.utils import Sequence
 from playsound import playsound
+import pyautogui
 
 BATCH = 32
 TRAIN = 582
@@ -25,7 +27,9 @@ VALIDATE = 87
 TEST = 51
 EPOCHS = 10
 LEARNING_RATE = 0.03
-
+COUNTER = 0
+START = 0
+REC = []
 
 def configure_cnn():
     model = Sequential()
@@ -323,6 +327,7 @@ def hough(images):
 
 
 def record_thread(model, single_color=False):
+    global REC
     d3d = d3dshot.create()
     recording = False
     if single_color:
@@ -339,32 +344,53 @@ def record_thread(model, single_color=False):
             arr = extract_yellow(arr)
         samples[0] = arr
         res = model.predict_classes(samples)
-        print(res[0][0])
+        #print(res[0][0])
         if res[0][0] == 0 and recording:
             recording = False
+
             st = threading.Thread(target=end)
             st.daemon = True  # Daemonize thread
             st.start()
+            sleep(2)
             print("ENDED")
         elif res[0][0] == 1 and not recording:
+            REC.append(RecordingModule())
             recording = True
             st = threading.Thread(target=start)
             st.daemon = True  # Daemonize thread
             st.start()
             print("STARTED")
         # sleep(0.04)
-        print(time() - t1)
+        #print(time() - t1)
 
 
 def start():
-    playsound("./start.mp3")
+    global COUNTER, START, REC
+
+    index = COUNTER
+    REC[index].record_sample()
+    START = time()
+    #playsound("./start.mp3")
 
 
 def end():
-    playsound("./end.mp3")
+    global COUNTER, START, REC
+    index = COUNTER
+    COUNTER += 1
+    END = time()
+    print("Vreme:")
+    print(END - START)
+    if END - START < 2:
+        return
+    REC[index].save_path("sample" + str(COUNTER) + ".wav")
+    REC[index].stop_recording()
+    pyautogui.click(x=727, y=718)
+    #playsound("./end.mp3")
 
 
 def real_time_detection(model_path, start_delay=3, single_color=False):
+    global COUNTER
+    COUNTER = 0
     print("Starting recording in:")
     for i in range(start_delay):
         sleep(1)
