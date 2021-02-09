@@ -25,10 +25,13 @@ class RecordingObject:
         self.pyaudio = pyaudio.PyAudio()  # Create an interface to PortAudio
 
         index = 0
-        for i in range(30):
-            info = self.pyaudio.get_device_info_by_index(i)
+        for i in range(self.pyaudio.get_device_count()):
+            try:
+                info = self.pyaudio.get_device_info_by_index(i)
+            except:
+                continue
             print(info)
-            if "stereo" in info["name"].lower():
+            if 'Stereo Mix' in info['name']:
                 index = i
                 print("Recording device index is {}".format(index))
                 self.channels = info["maxInputChannels"]
