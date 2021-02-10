@@ -2,7 +2,6 @@ import math
 import os
 import threading
 from time import sleep, time
-from projekat.recording_module import RecordingModule
 
 import cv2
 import d3dshot as d3dshot
@@ -11,13 +10,13 @@ import numpy as np
 import pyscreenshot as ImageGrab
 from PIL import Image
 from tensorflow import keras
-from keras.layers import Conv2D, LeakyReLU, Flatten, Dense, MaxPool2D
-from keras.losses import binary_crossentropy, categorical_crossentropy, mean_absolute_error, \
+from tensorflow.keras.layers import Conv2D, LeakyReLU, Flatten, Dense, MaxPool2D
+from tensorflow.keras.losses import binary_crossentropy, categorical_crossentropy, mean_absolute_error, \
     mean_squared_error
-from keras.metrics import Accuracy, BinaryAccuracy, MeanSquaredError, MeanAbsoluteError
-from keras.models import Sequential
-from keras.optimizers import Adam, SGD
-from keras.utils import Sequence
+from tensorflow.keras.metrics import Accuracy, BinaryAccuracy, MeanSquaredError, MeanAbsoluteError
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.optimizers import Adam, SGD
+from tensorflow.keras.utils import Sequence
 from playsound import playsound
 import pyautogui
 
@@ -32,6 +31,7 @@ LEARNING_RATE = 0.03
 COUNTER = 0
 START = 0
 REC = []
+
 
 def configure_cnn():
     model = Sequential()
@@ -326,11 +326,11 @@ def hough(images):
     return results
 
 
-def record_thread(model, single_color=False, dir="./sample/"):
-    global REC, COUNTER
+def detect_and_record(model, single_color=False):
+    global REC
     d3d = d3dshot.create()
 
-    record_object = RecordingObject(dir)
+    record_object = RecordingObject()
 
     recording = False
 
@@ -341,73 +341,48 @@ def record_thread(model, single_color=False, dir="./sample/"):
     else:
         samples = np.empty((1, 140, 380, 3))
 
+    start = time()
+
     while True:
-        # t1 = time()
+        t1 = time()
+
         arr = grab_interesting_area(d3d)
-        # cv2.imshow("CAPTURE", arr)
-        # cv2.waitKey()
+
         if single_color:
             arr = extract_yellow(arr)
         samples[0] = arr
         res = model.predict_classes(samples)
-        # print(res[0][0])
-        t1 = 0
-        if res[0][0] == 0 and recording:
-            print(time() - t1)
-            recording = False
 
-            st = threading.Thread(target=end)
-            st.daemon = True  # Daemonize thread
-            st.start()
+        if res[0][0] == 0 and recording:
+            recording = False
+            end = time()
+            print("Vreme:")
+            print(end - start)
+            if end - start < 2:
+                return
+            record_object.stop_recording("sample" + str(counter) + ".wav")
+            pyautogui.click(x=727, y=718)
             print("ENDED")
-            record_object.stop_recording(str(COUNTER) + "_cut.mp3")
+            sleep(2)
         elif res[0][0] == 1 and not recording:
             recording = True
-            st = threading.Thread(target=start)
-            st.daemon = True  # Daemonize thread
-            st.start()
             record_object.record_sample()
-            COUNTER += 1
+            counter += 1
             print("STARTED")
-            t1 = time()
-        # sleep(0.04)
-        # print(time() - t1)
+            start = time()
+
+        print(time() - t1)
 
 
-def start():
-    global COUNTER, START, REC
-
-    # index = COUNTER
-    # REC[index].record_sample()
-    START = time()
-    #playsound("./start.mp3")
-
-
-def end():
-    global COUNTER, START, REC
-    # index = COUNTER
-    # COUNTER += 1
-    END = time()
-    print("Vreme:")
-    print(END - START)
-    if END - START < 2:
-        return
-    # REC[index].save_path("sample" + str(COUNTER) + ".wav")
-    # REC[index].stop_recording("")
-    pyautogui.click(x=727, y=718)
-    #playsound("./end.mp3")
-
-
-def real_time_detection(model_path, start_delay=3, single_color=False):
-    global COUNTER
-    COUNTER = 0
-    print("Starting recording in:")
-    for i in range(start_delay):
-        sleep(1)
-        print(3 - i)
-
+def real_time_detection(model_path, start_delay=0, single_color=False):
+    if start_delay > 0:
+        print("Starting recording in:")
+        for i in range(start_delay):
+            sleep(1)
+            print(3 - i)
+    print("Started real time detection and recording.")
     model = load_model(model_path)
-    record_thread(model, single_color=single_color)
+    detect_and_record(model, single_color=single_color)
 
 
 if __name__ == '__main__':
