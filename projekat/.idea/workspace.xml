@@ -11,23 +11,24 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
-      <file leaf-file-name="recording_module.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="recording_module.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/recording_module.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="194">
-              <caret line="101" column="26" lean-forward="false" selection-start-line="101" selection-start-column="26" selection-end-line="101" selection-end-column="26" />
+            <state relative-caret-position="362">
+              <caret line="119" column="0" lean-forward="false" selection-start-line="119" selection-start-column="0" selection-end-line="119" selection-end-column="0" />
               <folding>
                 <element signature="e#0#16#0" expanded="true" />
+                <marker date="1612970655677" expanded="true" signature="85:110" ph="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="fingerprinting.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="fingerprinting.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/fingerprinting.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-4201">
-              <caret line="200" column="22" lean-forward="false" selection-start-line="200" selection-start-column="22" selection-end-line="200" selection-end-column="22" />
+            <state relative-caret-position="209">
+              <caret line="410" column="64" lean-forward="false" selection-start-line="410" selection-start-column="64" selection-end-line="410" selection-end-column="64" />
               <folding>
                 <element signature="e#0#16#0" expanded="true" />
               </folding>
@@ -38,9 +39,11 @@
       <file leaf-file-name="detect_record_module.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/detect_record_module.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4956">
-              <caret line="257" column="12" lean-forward="false" selection-start-line="257" selection-start-column="12" selection-end-line="257" selection-end-column="12" />
-              <folding />
+            <state relative-caret-position="5103">
+              <caret line="261" column="12" lean-forward="false" selection-start-line="261" selection-start-column="12" selection-end-line="261" selection-end-column="12" />
+              <folding>
+                <marker date="1612970604420" expanded="true" signature="10011:10046" ph="..." />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -89,8 +92,8 @@
         <option value="$PROJECT_DIR$/__init__.py" />
         <option value="$PROJECT_DIR$/nesto.mp3" />
         <option value="$PROJECT_DIR$/end1.wav" />
-        <option value="$PROJECT_DIR$/recording_module.py" />
         <option value="$PROJECT_DIR$/fingerprinting.py" />
+        <option value="$PROJECT_DIR$/recording_module.py" />
       </list>
     </option>
   </component>
@@ -326,12 +329,12 @@
     <frame x="-9" y="-9" width="1938" height="1048" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.12447917" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16041666" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32928178" sideWeight="0.33802083" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3359116" sideWeight="0.66197914" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3359116" sideWeight="0.66197914" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32928178" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -359,6 +362,7 @@
           <caret line="129" column="30" lean-forward="false" selection-start-line="129" selection-start-column="30" selection-end-line="129" selection-end-column="30" />
           <folding>
             <element signature="e#0#16#0" expanded="true" />
+            <marker date="1612970655677" expanded="true" signature="85:110" ph="..." />
           </folding>
         </state>
       </provider>
@@ -375,7 +379,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="4956">
           <caret line="257" column="12" lean-forward="false" selection-start-line="257" selection-start-column="12" selection-end-line="257" selection-end-column="12" />
-          <folding />
+          <folding>
+            <marker date="1612970604420" expanded="true" signature="10011:10046" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -395,6 +401,7 @@
           <caret line="95" column="27" lean-forward="false" selection-start-line="95" selection-start-column="27" selection-end-line="95" selection-end-column="27" />
           <folding>
             <element signature="e#0#16#0" expanded="true" />
+            <marker date="1612970655677" expanded="true" signature="85:110" ph="..." />
           </folding>
         </state>
       </provider>
@@ -403,7 +410,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="7014">
           <caret line="353" column="0" lean-forward="false" selection-start-line="353" selection-start-column="0" selection-end-line="353" selection-end-column="0" />
-          <folding />
+          <folding>
+            <marker date="1612970604420" expanded="true" signature="10011:10046" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -439,6 +448,7 @@
           <caret line="95" column="27" lean-forward="false" selection-start-line="95" selection-start-column="27" selection-end-line="95" selection-end-column="27" />
           <folding>
             <element signature="e#0#16#0" expanded="true" />
+            <marker date="1612970655677" expanded="true" signature="85:110" ph="..." />
           </folding>
         </state>
       </provider>
@@ -447,7 +457,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="7413">
           <caret line="353" column="0" lean-forward="false" selection-start-line="353" selection-start-column="0" selection-end-line="353" selection-end-column="0" />
-          <folding />
+          <folding>
+            <marker date="1612970604420" expanded="true" signature="10011:10046" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -483,6 +495,7 @@
           <caret line="95" column="27" lean-forward="false" selection-start-line="95" selection-start-column="27" selection-end-line="95" selection-end-column="27" />
           <folding>
             <element signature="e#0#16#0" expanded="true" />
+            <marker date="1612970655677" expanded="true" signature="85:110" ph="..." />
           </folding>
         </state>
       </provider>
@@ -491,7 +504,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="7014">
           <caret line="353" column="0" lean-forward="false" selection-start-line="353" selection-start-column="0" selection-end-line="353" selection-end-column="0" />
-          <folding />
+          <folding>
+            <marker date="1612970604420" expanded="true" signature="10011:10046" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -595,9 +610,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/detect_record_module.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4956">
-          <caret line="257" column="12" lean-forward="false" selection-start-line="257" selection-start-column="12" selection-end-line="257" selection-end-column="12" />
-          <folding />
+        <state relative-caret-position="5103">
+          <caret line="261" column="12" lean-forward="false" selection-start-line="261" selection-start-column="12" selection-end-line="261" selection-end-column="12" />
+          <folding>
+            <marker date="1612970604420" expanded="true" signature="10011:10046" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -631,22 +648,23 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/recording_module.py">
+    <entry file="file://$PROJECT_DIR$/fingerprinting.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="194">
-          <caret line="101" column="26" lean-forward="false" selection-start-line="101" selection-start-column="26" selection-end-line="101" selection-end-column="26" />
+        <state relative-caret-position="209">
+          <caret line="410" column="64" lean-forward="false" selection-start-line="410" selection-start-column="64" selection-end-line="410" selection-end-column="64" />
           <folding>
             <element signature="e#0#16#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fingerprinting.py">
+    <entry file="file://$PROJECT_DIR$/recording_module.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-4201">
-          <caret line="200" column="22" lean-forward="false" selection-start-line="200" selection-start-column="22" selection-end-line="200" selection-end-column="22" />
+        <state relative-caret-position="362">
+          <caret line="119" column="0" lean-forward="false" selection-start-line="119" selection-start-column="0" selection-end-line="119" selection-end-column="0" />
           <folding>
             <element signature="e#0#16#0" expanded="true" />
+            <marker date="1612970655677" expanded="true" signature="85:110" ph="..." />
           </folding>
         </state>
       </provider>
