@@ -6,11 +6,11 @@ import pyaudio
 
 class RecordingObject:
 
-    def __init__(self, path="./", chunk=1024, channels=2, fs=44100):
+    def __init__(self, chunk=1024, channels=2, fs=44100):
+        self.path = "test"
         self.filename = None
-        self.path = path
         self.data = []
-        self.chunk = chunk
+        self.chunk_size = chunk
         self.channels = channels
         self.fs = fs
         self.sample_format = pyaudio.paInt16  # 16 bits per sample
@@ -26,6 +26,7 @@ class RecordingObject:
 
         index = 0
         for i in range(self.pyaudio.get_device_count()):
+            print(type(i), i)
             try:
                 info = self.pyaudio.get_device_info_by_index(i)
             except:
@@ -35,16 +36,24 @@ class RecordingObject:
                 index = i
                 print("Recording device index is {}".format(index))
                 self.channels = info["maxInputChannels"]
+                print(type(self.channels), self.channels)
                 break
         print('Recording')
 
-        self.stream = self.pyaudio.open(format=self.sample_format,
+        # self.stream = self.pyaudio.open(format=self.sample_format,
+        #                                 channels=self.channels,
+        #                                 rate=self.fs,
+        #                                 frames_per_buffer=self.chunk,
+        #                                 input=True,
+        #                                 input_device_index=index)
+        self.stream = self.pyaudio.open(
+                                        format=self.sample_format,
                                         channels=self.channels,
                                         rate=self.fs,
-                                        frames_per_buffer=self.chunk,
+                                        # frames_per_buffer=self.chunk,
                                         input=True,
-                                        input_device_index=index)
-
+                                        # input_device_index=index
+            )
         self.data = []  # Initialize array to store frames
 
         x = threading.Thread(target=self.__recording_thread)
@@ -55,12 +64,12 @@ class RecordingObject:
         # # Save the recorded data as a WAV file
 
     def stop_recording(self, file):
-        self.filename = file
+        self.path = file
         self.middle_man.set_condition(False)
 
     def __recording_thread(self):
         while self.middle_man.check_condition():
-            data = self.stream.read(self.chunk)
+            data = self.stream.read(self.chunk_size)
             self.data.append(data)
             # print("Recorded chunk")
         print("Stopped recording")
@@ -71,9 +80,7 @@ class RecordingObject:
         self.pyaudio.terminate()
         print("Shut down pyaudio")
 
-
-        filename = self.path + self.filename
-        wf = wave.open(filename, 'wb')
+        wf = wave.open("sample/" + self.path, 'wb')
         wf.setnchannels(self.channels)
         wf.setsampwidth(self.pyaudio.get_sample_size(self.sample_format))
         wf.setframerate(self.fs)
@@ -107,4 +114,4 @@ if __name__ == '__main__':
     while inp != "x":
         print("Enter 'x' to stop recording: ")
         inp = input()
-    rec.stop_recording()
+    rec.stop_recording("test.wav")

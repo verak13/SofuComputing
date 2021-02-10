@@ -1,20 +1,15 @@
-
 from projekat.detect_record_module import real_time_detection
-from projekat.read_text_module import region_detect, load_image
 from pyautogui import *
 import cv2
 import numpy as np
 
 
-
-
 def recognize(path):
-
     template = cv2.imread(path)
     large_image = screenshot()
     dirname = os.path.dirname(__file__)
     large_image.save(os.path.join(dirname, 'slicice\slika.png'))
-    img_rgb =  cv2.imread('slicice\slika.png')
+    img_rgb = cv2.imread('slicice\slika.png')
     w, h = template.shape[:-1]
 
     res = cv2.matchTemplate(img_rgb, template, cv2.TM_CCOEFF_NORMED)
@@ -31,12 +26,12 @@ def recognize(path):
 
     print(location, w, h)
     if location:
-        location[0] += h/2
-        location[1] += w/2
+        location[0] += h / 2
+        location[1] += w / 2
     return location
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
 
     res = recognize("slicice/songpop2.PNG")
     if res:
@@ -66,6 +61,4 @@ if __name__ == '__main__':
                 click(back)
     sleep(3)
 
-
     real_time_detection("./MODEL.1LARGE1.h5", single_color=True, start_delay=3)
-
