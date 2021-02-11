@@ -326,11 +326,11 @@ def hough(images):
     return results
 
 
-def detect_and_record(model, single_color=False):
+def detect_and_record(model, handler=None, single_color=False):
     global REC
     d3d = d3dshot.create()
 
-    record_object = RecordingObject()
+    record_object = RecordingObject(record_handler=handler)
 
     recording = False
 
@@ -344,7 +344,6 @@ def detect_and_record(model, single_color=False):
     start = time()
 
     while True:
-        t1 = time()
 
         arr = grab_interesting_area(d3d)
 
@@ -356,25 +355,23 @@ def detect_and_record(model, single_color=False):
         if res[0][0] == 0 and recording:
             recording = False
             end = time()
-            print("Vreme:")
-            print(end - start)
-            if end - start < 2:
-                return
+            # print("Vreme:")
+            # print(end - start)
+            # if end - start < 2:
+            #     return
             record_object.stop_recording("sample" + str(counter) + ".wav")
-            pyautogui.click(x=727, y=718)
             print("ENDED")
-            sleep(2)
+            # sleep(2)
         elif res[0][0] == 1 and not recording:
             recording = True
             record_object.record_sample()
             counter += 1
             print("STARTED")
-            start = time()
-
-        print(time() - t1)
+            # start = time()
 
 
-def real_time_detection(model_path, start_delay=0, single_color=False):
+
+def real_time_detection(model_path, handler=None, start_delay=0, single_color=False):
     if start_delay > 0:
         print("Starting recording in:")
         for i in range(start_delay):
@@ -382,7 +379,7 @@ def real_time_detection(model_path, start_delay=0, single_color=False):
             print(3 - i)
     print("Started real time detection and recording.")
     model = load_model(model_path)
-    detect_and_record(model, single_color=single_color)
+    detect_and_record(model, single_color=single_color, handler=handler)
 
 
 if __name__ == '__main__':
@@ -394,7 +391,7 @@ if __name__ == '__main__':
     # order_files_by_number("./data/")
     # train_model(single_color=True)
 
-    # test_model("./MODEL.1LARGE1.h5", single_color=True)
+    # test_model("./DETECT_MODEL.h5", single_color=True)
 
     # predict_model(path="./MODEL.973.COLOR.h5")
     # x, y = open_data(15)
@@ -404,4 +401,4 @@ if __name__ == '__main__':
 
     # real_time_detection("./MODEL.987.COLOR.h5")
     # real_time_detection("./MODEL.1.h5", single_color=True)
-    real_time_detection("./MODEL.1LARGE1.h5", single_color=True)
+    real_time_detection("DETECT_MODEL.h5", single_color=True)

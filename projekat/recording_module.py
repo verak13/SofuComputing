@@ -8,7 +8,7 @@ import sqlite3
 
 class RecordingObject:
 
-    def __init__(self, chunk=1024, channels=2, fs=44100):
+    def __init__(self, chunk=1024, channels=2, fs=44100, record_handler=None):
         self.path = "test"
         self.filename = None
         self.data = []
@@ -20,6 +20,8 @@ class RecordingObject:
         self.middle_man = MiddleMan(True)
         self.stream = None
         self.pyaudio = None
+
+        self.record_handler = record_handler
 
     def record_sample(self):
         self.middle_man.set_condition(True)
@@ -82,6 +84,8 @@ class RecordingObject:
         # Terminate the PortAudio interface
         self.pyaudio.terminate()
         print("Shut down pyaudio")
+
+        self.record_handler.handle(self.data)
 
         wf = wave.open("sample/" + self.path, 'wb')
         wf.setnchannels(self.channels)
