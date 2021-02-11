@@ -70,15 +70,6 @@ def fingerprint(channel_samples, Fs=DEFAULT_FS,
                 amp_min=DEFAULT_AMP_MIN,
                 plots=False):
 
-    # show samples plot
-    if plots:
-      plt.plot(channel_samples)
-      plt.title('%d samples' % len(channel_samples))
-      plt.xlabel('time (s)')
-      plt.ylabel('amplitude (A)')
-      plt.show()
-      plt.gca().invert_yaxis()
-
     # FFT the channel, log transform output, find local maxima, then return
     # locally sensitive hashes.
     # FFT the signal and extract frequency components
@@ -91,29 +82,50 @@ def fingerprint(channel_samples, Fs=DEFAULT_FS,
         window=mlab.window_hanning,
         noverlap=int(wsize * wratio))[0]
 
-    # show spectrogram plot
-    if plots:
-      plt.plot(arr2D)
-      plt.title('FFT')
-      plt.show()
-
-
-    print(len(arr2D) * len(arr2D[0]))
-    print(len(arr2D))
-    print(len(arr2D[0]))
-    print(len(channel_samples))
+    #print(len(arr2D) * len(arr2D[0]))
+    #print(len(arr2D))
+    #print(len(arr2D[0]))
+    #print(len(channel_samples))
     #print(arr2D[0])
     # apply log transform since specgram() returns linear array
+    #print(np.log10(arr2D))
     arr2D = 10 * np.log10(arr2D) # calculates the base 10 logarithm for all elements of arr2D
     arr2D[arr2D == -np.inf] = 0  # replace infs with zeros
 
-    print(arr2D[0])
+    #print(arr2D[0])
+    #print(arr2D[1])
+
+    '''
+    print("=======================================")
+    #totalSize = len(channel_samples)
+    #sampledChunkSize = int(totalSize / 80)
+    #print(sampledChunkSize)
+    frequencies = []
+    frequenciesreq = []
+    for j in range(0, len(channel_samples), 80):
+        if (j + 80) >= len(channel_samples):
+            continue
+        data_tmp = channel_samples[j:j + 80]
+        data_tmp = data_tmp - np.mean(data_tmp)
+        data_tmp = np.multiply(data_tmp, np.hanning(len(data_tmp)))
+        fft_data_tmp = np.fft.fft(data_tmp, n=wsize)
+        fft_data_tmp = abs(fft_data_tmp[:int(len(fft_data_tmp) / 2)]) ** 2
+        frequencies.append(fft_data_tmp)
+
+        #frequencies.append(np.abs(np.fft.fft(v)))
+        frequenciesreq.append(np.abs(np.fft.fftfreq(len(fft_data_tmp))))
+    # print(frequencies[0])
+    print(frequencies[0])
+    frequenciesreq = 10 * np.log10(frequenciesreq)
+    frequenciesreq[frequenciesreq == -np.inf] = 0  # replace infs with zeros
+    print(frequenciesreq[1])
+    print(frequenciesreq[2])
+    print("++++++++++++++++++++++++++++++++++++++++")
+    '''
+
 
     # find local maxima
     local_maxima = get_2D_peaks(arr2D, plot=plots, amp_min=amp_min)
-
-    msg = '   local_maxima: %d of frequency & time pairs'
-    #print colored(msg, attrs=['dark']) % len(local_maxima)
 
     # return hashes
     return generate_hashes(local_maxima, fan_value=fan_value)
@@ -139,35 +151,19 @@ def get_2D_peaks(arr2D, plot=False, amp_min=DEFAULT_AMP_MIN):
     amps = amps.flatten()
     peaks = zip(i, j, amps)
     peaks_filtered = [x for x in peaks if x[2] > amp_min]  # freq, time, amp
-    #peaks_filtered = [x for x in peaks]
-    print("***")
-    print(peaks_filtered)
-    print("***")
-
+    #print(peaks_filtered)
 
     # get indices for frequency and time
     frequency_idx = [x[1] for x in peaks_filtered]
     time_idx = [x[0] for x in peaks_filtered]
 
-    # scatter of the peaks
-    if plot:
-      fig, ax = plt.subplots()
-      ax.imshow(arr2D)
-      ax.scatter(time_idx, frequency_idx)
-      ax.set_xlabel('Time')
-      ax.set_ylabel('Frequency')
-      ax.set_title("Spectrogram")
-      plt.gca().invert_yaxis()
-      plt.show()
-
-    print(frequency_idx, time_idx)
+    #print(frequency_idx, time_idx)
     return zip(frequency_idx, time_idx)
 
 # Hash list structure: sha1_hash[0:20] time_offset
 # example: [(e05b341a9b77a51fd26, 32), ... ]
 def generate_hashes(peaks, fan_value=DEFAULT_FAN_VALUE):
     if PEAK_SORT:
-      #peaks.sort(key=itemgetter(1))
       peaks = sorted(peaks, key = itemgetter(1))
 
     # bruteforce all peaks
@@ -188,12 +184,7 @@ def generate_hashes(peaks, fan_value=DEFAULT_FAN_VALUE):
 
           # check if delta is between min & max
           if t_delta >= MIN_HASH_TIME_DELTA and t_delta <= MAX_HASH_TIME_DELTA:
-            a = str(freq1).encode('utf-8')
-            b = str(freq2).encode('utf-8')
-            c = str(t_delta).encode('utf-8')
-            #h = hashlib.sha1("%s|%s|%s" % (str(freq1), str(freq2), str(t_delta)))
-            h = hashlib.sha1("%s|%s|%s".encode('utf-8') % (a, b, c))
-            #h = hashlib.sha1(a + "|" + b + "|" + c)
+            h = hashlib.sha1("%s|%s|%s".encode('utf-8') % (str(freq1).encode('utf-8'), str(freq2).encode('utf-8'), str(t_delta).encode('utf-8')))
             yield (h.hexdigest()[0:FINGERPRINT_REDUCTION], t1)
 
 
@@ -219,19 +210,27 @@ def fingerprint(channel_samples, Fs=DEFAULT_FS,
     # (-0.5, 0.499975)
 
 
+    print("=======================================")
     totalSize = len(channel_samples)
-    sampledChunkSize = int(totalSize / 10)
+    sampledChunkSize = int(totalSize / 80)
     print(sampledChunkSize)
     frequencies = []
     frequenciesreq = []
-    for j in range(sampledChunkSize-1):
-        v = channel_samples[j*10:10*j+10]
-        #print(v)
-        frequencies.append(np.fft.fft(v))
-        frequenciesreq.append(np.fft.fftfreq(len(v)))
-    print("55555555555555555555555")
-    #print(frequencies[0])
-    print(frequenciesreq[0])
+    for j in range(sampledChunkSize):
+        if j == sampledChunkSize:
+            v = channel_samples[j*80:]
+        else:
+            v = channel_samples[j * 80:80 * j + 80]
+        #if j == 4: print(v)
+        frequencies.append(np.abs(np.fft.fft(v)))
+        frequenciesreq.append(np.abs(np.fft.fftfreq(len(v))))
+        #if j == 0: print(frequenciesreq)
+    # print(frequencies[0])
+    frequenciesreq = 10 * np.log10(frequenciesreq)
+    frequenciesreq[frequenciesreq == -np.inf] = 0  # replace infs with zeros
+    print(frequenciesreq[1])
+    print(frequenciesreq[2])
+    print("++++++++++++++++++++++++++++++++++++++++")
 
 
         # Find the peak in the coefficients
@@ -356,33 +355,20 @@ def generate_hashes(peaks, fan_value=DEFAULT_FAN_VALUE):
 
 
 
-
-
-
-
-
-
-
-if __name__ == '__main__':
+def take_fingerprints(file, filename):
     print("start")
 
-    wf = wave.open("end.wav", 'rb')
+    wf = wave.open(file, 'rb')
 
     print(wf)
     print(wf.getframerate())
+    print(wf.getnframes())
     print(wf.getparams())
-    #print(wf.readframes(184320))
-    sound_arr = np.frombuffer(wf.readframes(184320), dtype=np.uint8)
+    # print(wf.readframes(184320))
+    sound_arr = np.frombuffer(wf.readframes(wf.getnframes()), dtype=np.uint8)
     print(sound_arr)
 
-
-    #data = np.fromstring(wf._data, np.int16)
-
-    #channels = []
-    #for chn in xrange(wf.getnchannels()):
-    #    channels.append(data[chn::wf.getnchannels()])
-
-    samplerate, data = wavfile.read("end.wav")
+    samplerate, data = wavfile.read(file)
     print(samplerate, data)
     print(f"number of channels = {data.shape[1]}")
     length = data.shape[0] / samplerate
@@ -395,27 +381,52 @@ if __name__ == '__main__':
         channel_hashes = fingerprint(data[:, i], Fs=wf.getframerate())
         channel_hashes = set(channel_hashes)
         hashes |= channel_hashes
-        #print(hashes)
+        # print(hashes)
     values = []
     for hash, offset in hashes:
-        values.append(("pjesma", hash, offset))
+        values.append((filename.split('.')[0], hash, offset))
     print(values)
     print(len(values))
 
-    #conn = sqlite3.connect('example.db')
+    conn = sqlite3.connect('songs.db')
+    c = conn.cursor()
+    for value in values:
+        print(value[0], value[1], value[2])
+        query = "INSERT INTO fingerprints (song, hash, offset) VALUES (?, ?, ?)"
+        c.execute(query, value)
+
+    conn.commit()
+    conn.close()
+
+
+
+if __name__ == '__main__':
+
+    #take_fingerprints("start.wav")
+
+    #conn = sqlite3.connect('songs.db')
     #c = conn.cursor()
-
-    #c.execute('''CREATE TABLE stocks
-    #             (date text, trans text, symbol text, qty real, price real)''')
-
-    #c.execute("INSERT INTO stocks VALUES ('2006-01-05','BUY','RHAT',100,35.14)")
-
-    #conn.commit()
-
-    #t = ('RHAT',)
-    #c.execute('SELECT * FROM stocks WHERE symbol=?', t)
-    #print(c.fetchone())
-
+    #c.execute('''CREATE TABLE fingerprints (song, hash, offset)''')
     #conn.close()
+
+
+    #for filename in os.listdir('data'):
+    #    if filename.endswith(".wav"):
+    #        print(os.path.join('data', filename))
+    #        take_fingerprints(os.path.join('data', filename), filename)
+    #        continue
+    #    else:
+    #        continue
+
+    conn1 = sqlite3.connect('songs.db')
+    c1 = conn1.cursor()
+    # t = ('0603e28991b838e87a03')
+    c1.execute('SELECT * FROM fingerprints WHERE song = ?', ('7 rings--Ariana Grande',))
+    print(c1.fetchall())
+    conn1.close()
+
+
+
+    #print(int.from_bytes(b'\x02\x00\x00\x00\x00\x00\x00\x00', 'little'))
 
 
