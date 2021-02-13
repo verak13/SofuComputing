@@ -10,10 +10,10 @@ import numpy as np
 import pyscreenshot as ImageGrab
 from PIL import Image
 from tensorflow import keras
-from tensorflow.keras.layers import Conv2D, LeakyReLU, Flatten, Dense, MaxPool2D
+from tensorflow.keras.layers import Conv2D, LeakyReLU, Flatten, Dense, MaxPool2D, Softmax
 from tensorflow.keras.losses import binary_crossentropy, categorical_crossentropy, mean_absolute_error, \
     mean_squared_error
-from tensorflow.keras.metrics import Accuracy, BinaryAccuracy, MeanSquaredError, MeanAbsoluteError
+from tensorflow.keras.metrics import Accuracy, BinaryAccuracy, CategoricalAccuracy, MeanSquaredError, MeanAbsoluteError
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.utils import Sequence
@@ -79,14 +79,10 @@ def configure_cnn():
     model.add(LeakyReLU())
 
     model.add(Flatten())
-    model.add(Dense(16))
-    model.add(LeakyReLU())
-    model.add(Dense(8))
-    model.add(LeakyReLU())
-    model.add(Dense(2))
+    model.add(Dense(3, activation="softmax"))
 
-    model.add(LeakyReLU())
-    model.add(Dense(1))
+    # model.add(LeakyReLU())
+    # model.add(Dense(1))
 
     model.build()
 
@@ -139,7 +135,8 @@ def open_data(length, path="./data/", single_color=False):
     x = np.empty((length, 140, 380, 1))
     # x = np.empty((length, 140, 380, 3))
     # y = np.empty((length, 2))
-    y = np.empty(length)
+    # y = np.empty(length)
+    y = np.zeros((length, 3))
     classes = []
     with open(path + "classes.txt") as f:
         for line in f.readlines():
@@ -167,15 +164,15 @@ def open_data(length, path="./data/", single_color=False):
 
         x[i] = img
         # y[i] = np.zeros(2)
-        # y[i][classes[i]] = 1
-        y[i] = classes[i]
+        y[i][classes[i]] = 1
+        # y[i] = classes[i]
 
     return x, y
 
 
 def train_model(single_color=False):
-    x, y = open_data(TRAIN, "./data/", single_color)
-    x_val, y_val = open_data(VALIDATE, "./validate_data/", single_color)
+    x, y = open_data(TRAIN, "train_data/", single_color)
+    x_val, y_val = open_data(VALIDATE, "validate_data/", single_color)
     generator = Generator(x, y, BATCH)
 
     model = configure_cnn()
@@ -184,8 +181,9 @@ def train_model(single_color=False):
         optimizer=Adam(
             # learning_rate=LEARNING_RATE
         ),
-        loss=mean_absolute_error,
-        metrics=[Accuracy(), BinaryAccuracy(), MeanSquaredError(), MeanAbsoluteError()],
+        # loss=mean_absolute_error,
+        loss=categorical_crossentropy,
+        metrics=[CategoricalAccuracy(), BinaryAccuracy(), MeanSquaredError(), MeanAbsoluteError()],
     )
 
     history = model.fit_generator(generator,
@@ -253,6 +251,7 @@ def order_files_by_number(path):
 
 
 def load_model(path="./MODEL.h5"):
+    print("LOADED MODEL: ", path)
     model = keras.models.load_model(path)
     return model
 
@@ -308,11 +307,23 @@ def hough(images):
 
 
 def start():
-    playsound("./start.mp3")
+    playsound("start.mp3")
 
 
 def end():
-    playsound("./end.mp3")
+    playsound("end.mp3")
+
+
+def gamestart():
+    playsound("gamestart.mp3")
+
+
+def gameend():
+    playsound("gameend.mp3")
+
+
+def play(path):
+    threading.Thread(target=playsound, args=[path]).start()
 
 
 def real_time_detection(model_path, handler=None, start_delay=0, single_color=False, generating=False, sentient=False,
@@ -335,6 +346,7 @@ def real_time_detection(model_path, handler=None, start_delay=0, single_color=Fa
         record_object = DefaultRecorder(record_handler=handler, stopper=stopper)
 
     recording = False
+    game_on = False
 
     if single_color:
         samples = np.empty((1, 140, 380, 1))
@@ -348,13 +360,36 @@ def real_time_detection(model_path, handler=None, start_delay=0, single_color=Fa
             arr = extract_yellow(arr)
         samples[0] = arr
         res = model.predict_classes(samples)
-        if res[0][0] == 0 and recording:
+        if res[0] == 2 and game_on:
+            game_on = False
             recording = False
-            record_object.stop_recording()
+            record_object.end_session()
+            print("Game end")
+            play("gameend.mp3")
+        elif res[0] != 2 and not game_on:
+            game_on = True
+            play("gameon.mp3")
+            recording = False
+            print("Game start")
 
-        elif res[0][0] == 1 and not recording:
-            recording = True
-            record_object.record_sample()
+        elif res[0] != 2 and game_on:
+            if res[0] == 0 and recording:
+                recording = False
+                record_object.stop_recording()
+                play("end.mp3")
+
+            elif res[0] == 1 and not recording:
+                recording = True
+                record_object.record_sample()
+                play("start.mp3")
+
+        # if res[0][0] == 0 and recording:
+        #     recording = False
+        #     record_object.stop_recording()
+        #
+        # elif res[0][0] == 1 and not recording:
+        #     recording = True
+        #     record_object.record_sample()
 
 
 if __name__ == '__main__':
@@ -362,11 +397,11 @@ if __name__ == '__main__':
     # generate_data()
     # generate_data(path="./data/", start_file=TRAIN + 1, delay=0.1)
 
-    # generate_data(path="./test_data/")
+    # generate_data(path="./test_data/", start_file=)
     # order_files_by_number("./data/")
     # train_model(single_color=True)
 
-    # test_model("./DETECT_MODEL.h5", single_color=True)
+    # test_model("MODEL.h5", single_color=True)
 
     # predict_model(path="./MODEL.973.COLOR.h5")
     # x, y = open_data(15)
@@ -376,5 +411,6 @@ if __name__ == '__main__':
 
     # real_time_detection("./MODEL.987.COLOR.h5")
     # real_time_detection("./MODEL.1.h5", single_color=True)
+    real_time_detection("MODEL_SM.h5", single_color=True)
     # real_time_detection("DETECT_MODEL.h5", single_color=True)
-    real_time_detection("DETECT_MODEL.h5", single_color=True, generating=True)
+    # real_time_detection("DETECT_MODEL.h5", single_color=True, generating=True)

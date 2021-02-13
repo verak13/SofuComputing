@@ -1,3 +1,5 @@
+import abc
+
 import d3dshot
 import pyautogui
 
@@ -13,9 +15,14 @@ from projekat.recording_module import MiddleMan
 
 
 class Handler:
-
+    @abc.abstractmethod
     def handle(self):
         pass
+
+    @abc.abstractmethod
+    def handle_session(self, data):
+        pass
+
 
 class DefaultHandler:
 
@@ -27,6 +34,11 @@ class DefaultHandler:
         answer = do_hash()
         self.ocr.click_closest_answer(answer)
         self.stopper.set_condition(True)
+
+    def handle_session(self, data):
+        self.ocr.analize_session()
+        print(data)
+
 
 class SentientHandler:
 
@@ -57,11 +69,11 @@ class SongPop2Solver:
         self.generating = generating
         self.sentient = sentient
 
-
     def thread_record(self):
 
-        real_time_detection(self.detect_model, self.handler, single_color=True, start_delay=0, generating=self.generating,
-                            sentient=self.sentient, stopper =self.stopper)
+        real_time_detection(self.detect_model, self.handler, single_color=True, start_delay=0,
+                            generating=self.generating,
+                            sentient=self.sentient, stopper=self.stopper)
 
     def recognize(self, path):
         template = cv2.imread(path)
@@ -182,7 +194,7 @@ if __name__ == '__main__':
     # imm = d3d.screenshot()
     # im = np.asarray(imm)
     # print(time.time() - t1)
-    songpop2 = SongPop2Solver("DETECT_MODEL.h5", "TEXT_MODEL.h5")
+    songpop2 = SongPop2Solver("MODEL_SM.h5", "TEXT_MODEL.h5")
     # songpop2 = SongPop2Solver("DETECT_MODEL.h5", "TEXT_MODEL_28.h5")
     # songpop2 = SongPop2Solver("./DETECT_MODEL.h5", "./TEXT_MODEL.h5", generating=True)
     songpop2.play()

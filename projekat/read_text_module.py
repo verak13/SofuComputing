@@ -385,6 +385,18 @@ class OCR:
     def click_closest_answer(self, answer):
         self.detect_with_model(answer)
 
+    def analize_session(self):
+        print("Analyzing")
+        pyautogui.scroll(2)
+        im = self.d3d.screenshot()
+
+        im = np.asarray(im)
+
+        results = im[270:810, 760:1140].copy()
+
+        cv2.imshow("results", results)
+        cv2.waitKey()
+
     def check_answer(self):
         pyautogui.click(x=727, y=718)
         im = self.d3d.screenshot()

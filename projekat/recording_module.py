@@ -15,7 +15,7 @@ from projekat.read_text_module import OCR
 
 class RecordingObject:
 
-    def __init__(self, chunk=1024, channels=2, fs=44100, record_handler=None):
+    def __init__(self, chunk=1024, channels=2, fs=44100, record_handler=None, session_handler=None):
         self.filename = None
         self.data = []
         self.chunk_size = chunk
@@ -28,6 +28,7 @@ class RecordingObject:
         self.pyaudio = None
 
         self.record_handler = record_handler
+        self.session_handler = session_handler
 
         self.counter = 0
 
@@ -80,6 +81,8 @@ class RecordingObject:
         self.middle_man.set_condition(True)
         t1 = time()
 
+        self.counter = 0
+
         self.record_loop()
 
         self.data = []
@@ -94,17 +97,17 @@ class RecordingObject:
     def record_loop(self):
         pass
 
-    def save_sample(self, filename):
+    def save_sample(self, filename, data):
         wf = wave.open(filename, 'wb')
         wf.setnchannels(self.channels)
         wf.setsampwidth(self.pyaudio.get_sample_size(self.sample_format))
         wf.setframerate(self.fs)
-        wf.writeframes(b''.join(self.data))
+        wf.writeframes(b''.join(data))
         wf.close()
 
-    def save_sample_and_handle(self, filename):
+    def save_sample_and_handle(self, filename, data):
 
-        self.save_sample(filename)
+        self.save_sample(filename, data)
         self.handle()
 
     def handle(self):
@@ -118,15 +121,24 @@ class RecordingObject:
         self.pyaudio.terminate()
         print("Shut down pyaudio")
 
+    @abc.abstractmethod
+    def end_session(self):
+        pass
+
 
 class DefaultRecorder(RecordingObject):
 
     def __init__(self, chunk=1024, channels=2, fs=44100, record_handler=None, stopper=None):
         super(DefaultRecorder, self).__init__(chunk, channels, fs, record_handler)
         self.stopper = stopper
+        self.counter = 0
+        self.whole_data = []
+        self.thread = None
+        self.fails = []
 
     def record_loop(self):
         i = 0
+
         ratio = np.ceil(self.fs / self.chunk_size)
         # ratio *= 2
         # ratio //= 3
@@ -135,12 +147,12 @@ class DefaultRecorder(RecordingObject):
         while self.middle_man.check_condition():
             data = self.stream.read(self.chunk_size)
             self.data.append(data)
+            self.whole_data.append(data)
             i += 1
             if i >= ratio and self.stopper.check_condition():
-
                 t1 = time()
                 self.stopper.set_condition(False)
-                self.save_sample("sample/sample.wav")
+                self.save_sample("sample/sample.wav", self.data)
                 self.thread = threading.Thread(target=self.handle)
                 self.thread.start()
                 print("HANDLE TIME", time() - t1)
@@ -153,8 +165,12 @@ class DefaultRecorder(RecordingObject):
         # Stisni prvi kad ne znas nista
         pyautogui.click(x=727, y=718)
         pyautogui.moveTo(100, 100)
-        # ocr = OCR("TEXT_MODEL.h5")
-        # ocr.check_answer()
+        self.save_sample("fails/" + str(self.counter) + ".wav", self.whole_data)
+        self.counter += 1
+
+    def end_session(self):
+        self.stop_recording()
+        self.record_handler.handle_session(self.fails)
 
 
 class SentientRecorder(RecordingObject):
@@ -162,7 +178,7 @@ class SentientRecorder(RecordingObject):
         while self.middle_man.check_condition():
             data = self.stream.read(self.chunk_size)
             self.data.append(data)
-        self.save_sample_and_handle("sample/sample.wav")
+        self.save_sample_and_handle("sample/sample.wav", self.data)
 
 
 class GenerateRecorder(RecordingObject):
@@ -170,7 +186,7 @@ class GenerateRecorder(RecordingObject):
         while self.middle_man.check_condition():
             data = self.stream.read(self.chunk_size)
             self.data.append(data)
-        self.save_sample("sample/sample" + str(self.counter) + ".wav")
+        self.save_sample("sample/sample" + str(self.counter) + ".wav", self.data)
         pyautogui.click(x=727, y=718)
         pyautogui.screenshot("./ss/ss" + str(self.counter) + ".png")
         self.counter += 1
