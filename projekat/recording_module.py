@@ -1,3 +1,4 @@
+import abc
 import threading
 import wave
 from time import time
@@ -9,10 +10,12 @@ import numpy as np
 import pyautogui
 from playsound import playsound
 
+from projekat.read_text_module import OCR
+
 
 class RecordingObject:
 
-    def __init__(self, chunk=1024, channels=2, fs=44100, record_handler=None, generating=False):
+    def __init__(self, chunk=1024, channels=2, fs=44100, record_handler=None):
         self.filename = None
         self.data = []
         self.chunk_size = chunk
@@ -25,7 +28,6 @@ class RecordingObject:
         self.pyaudio = None
 
         self.record_handler = record_handler
-        self.generating = generating
 
         self.counter = 0
 
@@ -72,31 +74,14 @@ class RecordingObject:
         self.middle_man.set_condition(False)
 
     def __recording_thread(self):
-        ratio = self.fs // self.chunk_size
-        # ratio *= 2
-        # ratio //= 3
+
         # while self.middle_man.check_condition():
         #     pass
         self.middle_man.set_condition(True)
         t1 = time()
 
-        if self.generating:
-            while self.middle_man.check_condition():
-                data = self.stream.read(self.chunk_size)
-                self.data.append(data)
-            self.save_sample("sample/sample" + str(self.counter) + ".wav")
-            pyautogui.click(x=727, y=718)
-            pyautogui.screenshot("./ss/ss" + str(self.counter) + ".png")
-            self.counter += 1
-        else:
-            i = 0
-            t1 = time()
-            while self.middle_man.check_condition() and i < ratio:
-                data = self.stream.read(self.chunk_size)
-                self.data.append(data)
-                i += 1
+        self.record_loop()
 
-            self._save_sample("sample/sample.wav")
         self.data = []
         print("Recording time", time() - t1)
         print("Stopped recording")
@@ -105,6 +90,10 @@ class RecordingObject:
 
         self.middle_man.set_condition(False)
 
+    @abc.abstractmethod
+    def record_loop(self):
+        pass
+
     def save_sample(self, filename):
         wf = wave.open(filename, 'wb')
         wf.setnchannels(self.channels)
@@ -112,10 +101,13 @@ class RecordingObject:
         wf.setframerate(self.fs)
         wf.writeframes(b''.join(self.data))
         wf.close()
-        print("WRITTEN")
 
-    def _save_sample(self, filename):
+    def save_sample_and_handle(self, filename):
+
         self.save_sample(filename)
+        self.handle()
+
+    def handle(self):
         if self.record_handler is not None:
             self.record_handler.handle()
 
@@ -125,6 +117,63 @@ class RecordingObject:
         # Terminate the PortAudio interface
         self.pyaudio.terminate()
         print("Shut down pyaudio")
+
+
+class DefaultRecorder(RecordingObject):
+
+    def __init__(self, chunk=1024, channels=2, fs=44100, record_handler=None, stopper=None):
+        super(DefaultRecorder, self).__init__(chunk, channels, fs, record_handler)
+        self.stopper = stopper
+
+    def record_loop(self):
+        i = 0
+        ratio = np.ceil(self.fs / self.chunk_size)
+        # ratio *= 2
+        # ratio //= 3
+        # ratio = np.ceil(ratio/2)
+        self.stopper.set_condition(True)
+        while self.middle_man.check_condition():
+            data = self.stream.read(self.chunk_size)
+            self.data.append(data)
+            i += 1
+            if i >= ratio and self.stopper.check_condition():
+
+                t1 = time()
+                self.stopper.set_condition(False)
+                self.save_sample("sample/sample.wav")
+                self.thread = threading.Thread(target=self.handle)
+                self.thread.start()
+                print("HANDLE TIME", time() - t1)
+                i = 0
+                self.data = []
+        self.stopper.set_condition(True)
+
+        if self.thread is not None:
+            self.thread.join()
+        # Stisni prvi kad ne znas nista
+        pyautogui.click(x=727, y=718)
+        pyautogui.moveTo(100, 100)
+        # ocr = OCR("TEXT_MODEL.h5")
+        # ocr.check_answer()
+
+
+class SentientRecorder(RecordingObject):
+    def record_loop(self):
+        while self.middle_man.check_condition():
+            data = self.stream.read(self.chunk_size)
+            self.data.append(data)
+        self.save_sample_and_handle("sample/sample.wav")
+
+
+class GenerateRecorder(RecordingObject):
+    def record_loop(self):
+        while self.middle_man.check_condition():
+            data = self.stream.read(self.chunk_size)
+            self.data.append(data)
+        self.save_sample("sample/sample" + str(self.counter) + ".wav")
+        pyautogui.click(x=727, y=718)
+        pyautogui.screenshot("./ss/ss" + str(self.counter) + ".png")
+        self.counter += 1
 
 
 class MiddleMan:

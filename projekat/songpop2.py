@@ -1,3 +1,4 @@
+import d3dshot
 import pyautogui
 
 from projekat.detect_record_module import real_time_detection
@@ -8,28 +9,59 @@ import threading
 
 from projekat.fingerprinting import do_hash
 from projekat.read_text_module import OCR
+from projekat.recording_module import MiddleMan
+
+
+class Handler:
+
+    def handle(self):
+        pass
+
+class DefaultHandler:
+
+    def __init__(self, ocr=None, stopper=None):
+        self.ocr = ocr
+        self.stopper = stopper
+
+    def handle(self):
+        answer = do_hash()
+        self.ocr.click_closest_answer(answer)
+        self.stopper.set_condition(True)
+
+class SentientHandler:
+
+    def __init__(self, ocr=None):
+        self.ocr = ocr
+
+    def handle(self):
+        answer = do_hash()
+        self.ocr.click_closest_answer(answer)
 
 
 class SongPop2Solver:
-    def __init__(self, detect_model, ocr_model, generating=False):
+    def __init__(self, detect_model, ocr_model, generating=False, sentient=False):
+        self.handler = None
         self.detect_model = detect_model
         self.ocr_model = ocr_model
-        if not generating:
-            self.ocr = OCR(self.ocr_model)
+        self.stopper = MiddleMan(True)
 
-        # TODO implementirati hash
-        self.hash = None
+        if sentient:
+            self.ocr = OCR(self.ocr_model)
+            self.handler = SentientHandler(self.ocr)
+        elif not generating:
+            self.ocr = OCR(self.ocr_model)
+            self.handler = DefaultHandler(self.ocr, self.stopper)
+        else:
+            self.handler = Handler()
 
         self.generating = generating
+        self.sentient = sentient
 
-    def handle(self):
-        print("HANDLING")
-        answer = do_hash()
-        self.ocr.click_closest_answer(answer)
-        # pyautogui.click(x=727, y=718)
 
     def thread_record(self):
-        real_time_detection(self.detect_model, self, single_color=True, start_delay=0, generating=self.generating)
+
+        real_time_detection(self.detect_model, self.handler, single_color=True, start_delay=0, generating=self.generating,
+                            sentient=self.sentient, stopper =self.stopper)
 
     def recognize(self, path):
         template = cv2.imread(path)
@@ -141,6 +173,16 @@ class SongPop2Solver:
 
 
 if __name__ == '__main__':
-    songpop2 = SongPop2Solver("./DETECT_MODEL.h5", "./TEXT_MODEL.h5")
+    # d3d = d3dshot.create()
+    # t1 = time.time()
+    # imm = pyautogui.screenshot()
+    # im = np.array(imm)
+    # print(time.time()-t1)
+    # t1 = time.time()
+    # imm = d3d.screenshot()
+    # im = np.asarray(imm)
+    # print(time.time() - t1)
+    songpop2 = SongPop2Solver("DETECT_MODEL.h5", "TEXT_MODEL.h5")
+    # songpop2 = SongPop2Solver("DETECT_MODEL.h5", "TEXT_MODEL_28.h5")
     # songpop2 = SongPop2Solver("./DETECT_MODEL.h5", "./TEXT_MODEL.h5", generating=True)
     songpop2.play()

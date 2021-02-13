@@ -190,34 +190,28 @@ def do_hash():
 
     hashes = list(hashes)
     print(len(hashes))
-    for index in range(0, len(hashes), 1000):
-        if index + 1000 > len(hashes):
+
+    SLICE = 999
+
+    for index in range(0, len(hashes), SLICE):
+        if index + SLICE > len(hashes):
             j = len(hashes)
         else:
-            j = index + 1000
+            j = index + SLICE
         h = [hashes[k][0] for k in range(index, j)]
 
         qmark = ", ".join(["?"] * len(h))
 
         c1.execute(
-            'SELECT song FROM fingerprints WHERE hash in ({}) group by song order by count(hash) desc'.format(qmark), h)
+            'SELECT song FROM fingerprints WHERE hash in ({}) group by song order by count(*) desc'.format(qmark), h)
         result = c1.fetchall()
         if len(result) > 0:
             print(result)
             answer = result[0][0]
             break
 
-    # for hasha, offset in hashes:
-    #     # c1.execute('Select song From fingerprints WHERE hash=? ORDER BY Difference(hash, ?) DESC', (hasha, hasha))
-    #     c1.execute('SELECT song FROM fingerprints WHERE hash = ?', (hasha,))
-    #     result = c1.fetchall()
-    #     if len(result) > 0:
-    #         print(result)
-    #         answer = result[0][0]
-    #         break
     conn1.close()
 
-    # answer = max(answer_dict, key=lambda key: answer_dict[key])
     print("DB time", time() - t1)
     print(answer)
     return answer

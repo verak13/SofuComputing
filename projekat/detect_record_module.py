@@ -20,7 +20,7 @@ from tensorflow.keras.utils import Sequence
 from playsound import playsound
 import pyautogui
 
-from projekat.recording_module import RecordingObject
+from projekat.recording_module import RecordingObject, SentientRecorder, GenerateRecorder, DefaultRecorder
 
 BATCH = 32
 TRAIN = 582
@@ -35,25 +35,6 @@ REC = []
 
 def configure_cnn():
     model = Sequential()
-
-    # # 380x140
-    # model.add(Conv2D(16, (3, 3), (2, 2), input_shape=(140, 380, 3)))
-    # model.add(LeakyReLU())
-    # # ~190x70
-    # model.add(Conv2D(16, (3, 3), (2, 2)))
-    # model.add(LeakyReLU())
-    #
-    # # ~90x30
-    # model.add(Conv2D(32, (3, 3), (2, 2)))
-    # model.add(LeakyReLU())
-    #
-    # # ~40x15
-    # model.add(Conv2D(32, (3, 3), (2, 2)))
-    # model.add(LeakyReLU())
-    #
-    # # ~20x7
-    # model.add(Conv2D(32, (3, 3), (2, 2)))
-    # model.add(LeakyReLU())
 
     # 380x140
     model.add(Conv2D(16, (3, 3), (2, 2), input_shape=(140, 380, 1), padding="same"))
@@ -334,11 +315,24 @@ def end():
     playsound("./end.mp3")
 
 
-def detect_and_record(model, handler=None, single_color=False, generating=False):
-    global REC
+def real_time_detection(model_path, handler=None, start_delay=0, single_color=False, generating=False, sentient=False,
+                        stopper=None):
+    if start_delay > 0:
+        print("Starting recording in:")
+        for i in range(start_delay):
+            sleep(1)
+            print(3 - i)
+    print("Started real time detection and recording.")
+    model = load_model(model_path)
+
     d3d = d3dshot.create()
 
-    record_object = RecordingObject(record_handler=handler, generating=generating)
+    if sentient:
+        record_object = SentientRecorder(record_handler=handler)
+    elif generating:
+        record_object = GenerateRecorder(record_handler=handler)
+    else:
+        record_object = DefaultRecorder(record_handler=handler, stopper=stopper)
 
     recording = False
 
@@ -348,8 +342,6 @@ def detect_and_record(model, handler=None, single_color=False, generating=False)
         samples = np.empty((1, 140, 380, 3))
 
     while True:
-        # t1 = time()
-
         arr = grab_interesting_area(d3d)
 
         if single_color:
@@ -358,32 +350,11 @@ def detect_and_record(model, handler=None, single_color=False, generating=False)
         res = model.predict_classes(samples)
         if res[0][0] == 0 and recording:
             recording = False
-            # print("Vreme:")
-            # print(end - start)
-            # if end - start < 2:
-            #     return
             record_object.stop_recording()
-            # print("ENDED")
-            # sleep(2)
-            # threading.Thread(target=end).start()
 
         elif res[0][0] == 1 and not recording:
             recording = True
             record_object.record_sample()
-            # print("STARTED")
-            # threading.Thread(target=start).start()
-        # print("DETECT TIME", time() - t1)
-
-
-def real_time_detection(model_path, handler=None, start_delay=0, single_color=False, generating=False):
-    if start_delay > 0:
-        print("Starting recording in:")
-        for i in range(start_delay):
-            sleep(1)
-            print(3 - i)
-    print("Started real time detection and recording.")
-    model = load_model(model_path)
-    detect_and_record(model, single_color=single_color, handler=handler, generating=generating)
 
 
 if __name__ == '__main__':
