@@ -173,16 +173,7 @@ class SongPop2Solver:
 
 
 if __name__ == '__main__':
-    # d3d = d3dshot.create()
-    # t1 = time.time()
-    # imm = pyautogui.screenshot()
-    # im = np.array(imm)
-    # print(time.time()-t1)
-    # t1 = time.time()
-    # imm = d3d.screenshot()
-    # im = np.asarray(imm)
-    # print(time.time() - t1)
+
     songpop2 = SongPop2Solver("DETECT_MODEL.h5", "TEXT_MODEL.h5")
-    # songpop2 = SongPop2Solver("DETECT_MODEL.h5", "TEXT_MODEL_28.h5")
     # songpop2 = SongPop2Solver("./DETECT_MODEL.h5", "./TEXT_MODEL.h5", generating=True)
     songpop2.play()

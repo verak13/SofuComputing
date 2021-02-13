@@ -31,7 +31,11 @@ class RecordingObject:
 
         self.counter = 0
 
+        self.___recording_thread = None
+
     def record_sample(self):
+        if self.___recording_thread != None:
+            return
         # self.middle_man.set_condition(True)
         self.pyaudio = pyaudio.PyAudio()  # Create an interface to PortAudio
 
@@ -62,9 +66,9 @@ class RecordingObject:
             input_device_index=self.index
         )
 
-        x = threading.Thread(target=self.__recording_thread)
-        x.setDaemon(True)
-        x.start()
+        self.___recording_thread = threading.Thread(target=self.__recording_thread)
+        self.___recording_thread.setDaemon(True)
+        self.___recording_thread.start()
 
         # print('Finished recording')
         #
@@ -89,6 +93,7 @@ class RecordingObject:
         self.close_streams()
 
         self.middle_man.set_condition(False)
+        self.___recording_thread = None
 
     @abc.abstractmethod
     def record_loop(self):

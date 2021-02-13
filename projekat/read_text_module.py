@@ -363,141 +363,8 @@ class OCR:
         self.model = keras.models.load_model(model)
         self.d3d = d3dshot.create()
 
-    def extract_green(self, img):
-        # cv2.imshow("imag_hsv", img)
-        # cv2.waitKey()
-
-        img_hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
-
-        # cv2.imshow("imag_hsv", img_hsv)
-        # cv2.waitKey()
-
-        hsv_color1 = np.asarray([40, 40, 40])
-        hsv_color2 = np.asarray([70, 255, 255])
-
-        img = cv2.inRange(img_hsv, hsv_color1, hsv_color2)
-        # cv2.imshow("mask", img)
-        # cv2.waitKey()
-        img = np.expand_dims(img, axis=2)
-        img = np.float32(img)
-        return img
-
     def click_closest_answer(self, answer):
         self.detect_with_model(answer)
-
-    def check_answer(self):
-        pyautogui.click(x=727, y=718)
-        im = self.d3d.screenshot()
-
-        im = np.asarray(im)
-
-        answers = []
-
-        sums = []
-
-        for i in range(4):
-            slice = im[DIMS[i][0]:DIMS[i][1], DIMS[i][2]:DIMS[i][3]].copy()
-            # display_image(X[i])
-
-            green = self.extract_green(slice)
-            sums.append(np.sum(green))
-            scale_percent = 182.95  # percent of original size
-            width = int(slice.shape[1] * scale_percent / 100)
-            height = int(slice.shape[0] * scale_percent / 100)
-            dim = (width, height)
-
-            # resize image
-            resized = cv2.resize(slice, dim, interpolation=cv2.INTER_CUBIC)
-            # display_image(resized)
-
-            eh = prepare_img_for_roi(resized)
-            # cv2.imshow("www", eh)
-            # cv2.waitKey()
-            selected_regions1, letters1, distances1, contours1 = select_roi_with_distances(resized.copy(), eh)
-            print("Broj prepoznatih regiona: ", len(letters1))
-            if i == 2: display_image(selected_regions1)
-
-            # neophodno je da u K-Means algoritam bude prosledjena matrica u kojoj vrste odredjuju elemente
-            # distances1 = np.array(distances1).reshape(len(distances1), 1)
-            #
-            # print(distances1)
-            #
-            # k_means = KMeans(n_clusters=2)
-            # k_means.fit(distances1)
-            #
-            inputs1 = prepare_for_ann(letters1)
-            results1 = self.model.predict(np.array(inputs1, np.float32))
-            # print(display_result_with_spaces(results1, alphabet, k_means))
-            # answers.append(display_result_with_spaces(results1, alphabet, k_means))
-            res = ""
-            for j, letter in enumerate(results1):
-                res += ALPHABET[winner(letter)]
-                if j < len(letters1) - 1 and distances1[j] > 7:
-                    res += " "
-            print(res)
-            answers.append(res)
-        maximus = 0
-        i_maximus = -1
-        for i, sum in enumerate(sums):
-            if sum > maximus:
-                i_maximus = i
-                maximus = sum
-        answer = answers[i_maximus]
-        files = os.listdir("./smart")
-
-        if len(files) == 0:
-            try:
-                copyfile("sample/sample.wav", "smart/" + answer + ".wav")
-                print("CREATED")
-            except Exception:
-                print("ERROR")
-            return
-
-        file_names = [os.path.splitext(f)[0] for f in files]
-
-        score, resultText, index = get_most_similar(answer, file_names)
-
-        print("SCORE ", score)
-
-        if score < 0.8:
-            samplerate, data = wavfile.read("sample/sample.wav")
-            print("Score is low")
-
-            MSE = []
-            THRESH = 1000
-            for f in files:
-                samplerate, data1 = wavfile.read(f)
-
-                mse = ((data - data1) ** 2).mean()
-
-                name = os.path.splitext(f)[0]
-
-                MSE.append((name, mse, f))
-            sorted(MSE, key=lambda x: x[1])
-            minimum = MSE[0]
-            maximum = MSE[len(MSE) - 1]
-
-            print(minimum, maximum)
-            mse = minimum[1]
-            if mse < THRESH:
-                print("BELLOW THRESH")
-                new_file = minimum[0] + "--" + answer + ".wav"
-                print("new name", new_file)
-                try:
-                    copyfile("smart/" + minimum[2], "smart_processed/" + new_file)
-                    print("SAVED")
-                    os.remove("smart/" + minimum[2])
-                    print("DELETED")
-                    # TODO sacuvati u bazu
-                except Exception:
-                    print("ERROR")
-            else:
-                print("WOW NEW FILE")
-                try:
-                    copyfile("sample/sample.wav", "smart_processed/" + answer + ".wav")
-                    print("SAVED NEW")
-                except Exception:
-                    print("ERROR")
 
     def detect_with_model(self, answer, ss=True, img_path=None):
         # time.sleep(1)
@@ -524,35 +391,16 @@ class OCR:
             height = int(curr.shape[0] * scale_percent / 100)
             dim = (width, height)
 
-            # resize image
             resized = cv2.resize(curr, dim, interpolation=cv2.INTER_CUBIC)
-            # display_image(resized)
-            # cv2.imshow("www", resized)
-            # cv2.waitKey()
 
             eh = prepare_img_for_roi(resized)
-            # cv2.imshow("www", eh)
-            # cv2.waitKey()
-            selected_regions1, letters1, distances1, contours1 = select_roi_with_distances(resized.copy(), eh)
-            # print("Broj prepoznatih regiona: ", len(letters1))
 
-            # neophodno je da u K-Means algoritam bude prosledjena matrica u kojoj vrste odredjuju elemente
-            # distances1 = np.array(distances1).reshape(len(distances1), 1)
-            #
-            # print(distances1)
-            #
-            # k_means = KMeans(n_clusters=2)
-            # k_means.fit(distances1)
-            #
+            selected_regions1, letters1, distances1, contours1 = select_roi_with_distances(resized.copy(), eh)
 
             inputs1 = prepare_for_ann(letters1)
 
-            t1 = time.time()
             results1 = self.model.predict(np.array(inputs1, np.float32))
-            print("ann  time", time.time() - t1)
 
-            # print(display_result_with_spaces(results1, alphabet, k_means))
-            # answers.append(display_result_with_spaces(results1, alphabet, k_means))
             res = ""
             for j, letter in enumerate(results1):
                 res += ALPHABET[winner(letter)]
@@ -575,8 +423,6 @@ class OCR:
         print()
         print("Score time", time.time() - t1)
         if score > self.percent:
-            # cv2.imshow("Winner", X[index])
-            # cv2.waitKey()
             pyautogui.moveTo(DIMS[index][2] + 10, DIMS[index][0] + 10)
             pyautogui.click()
             pyautogui.moveTo(100, 100)
