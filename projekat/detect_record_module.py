@@ -283,6 +283,10 @@ def predict_model(path):
     print(res2)
 
 
+def play_mp3(mp3):
+    threading.Thread(target=playsound, args=[mp3]).start()
+
+
 def start():
     playsound("./start.mp3")
 

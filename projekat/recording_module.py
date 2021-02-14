@@ -35,7 +35,7 @@ class RecordingObject:
         self.___recording_thread = None
 
     def record_sample(self):
-        if self.___recording_thread != None:
+        if self.___recording_thread is not None:
             return
         # self.middle_man.set_condition(True)
         self.pyaudio = pyaudio.PyAudio()  # Create an interface to PortAudio
@@ -79,15 +79,13 @@ class RecordingObject:
         self.middle_man.set_condition(False)
 
     def __recording_thread(self):
-
-        # while self.middle_man.check_condition():
-        #     pass
         self.middle_man.set_condition(True)
         t1 = time()
 
         self.record_loop()
 
         self.data = []
+
         print("Recording time", time() - t1)
         print("Stopped recording")
 
